@@ -1,0 +1,16 @@
+{
+  "name": "ets2-radio-cn",
+  "version": "1.0.0",
+  "description": "欧卡2中国电台转换工具 - 爬取云听电台并转换为欧卡2可用格式",
+  "main": "index.js",
+  "scripts": {
+    "crawl": "node crawler.js",
+    "start": "node server.js",
+    "generate": "node generate-sii.js"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "express": "^4.18.2",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+}
