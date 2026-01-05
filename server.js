@@ -129,308 +129,25 @@ async function refreshStreamUrl(stationId, stationInfo = {}) {
 }
 
 /**
- * 首页 - 显示所有可用电台
+ * 渲染HTML模板
+ * @param {string} template 模板内容
+ * @param {object} data 替换数据
  */
-app.get('/', (req, res) => {
-    // 获取所有省份列表
-    const provinces = [...new Set(stations.map(s => s.province || '其他'))].sort((a, b) => {
-        if (a === '央广') return -1;
-        if (b === '央广') return 1;
-        return a.localeCompare(b, 'zh-CN');
-    });
+function renderTemplate(template, data) {
+    let result = template;
+    for (const [key, value] of Object.entries(data)) {
+        result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    }
+    return result;
+}
 
-    // 生成电台数据JSON供前端使用
-    const stationsData = stations.map(s => ({
-        id: s.id,
-        name: s.name,
-        province: s.province || '其他',
-        image: s.image || '',
-        url: `http://127.0.0.1:${PORT}/stream/${s.id}`
-    }));
-
-    let html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>欧卡2中国电台 - 本地转发服务器</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        h1 { 
-            text-align: center; 
-            margin-bottom: 10px;
-            font-size: 2em;
-            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        /* 搜索和筛选区域 */
-        .search-area {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-        }
-        .search-box {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-            position: relative;
-        }
-        .search-box input {
-            width: 100%;
-            padding: 15px 20px 15px 50px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 50px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 1em;
-            outline: none;
-            transition: all 0.3s;
-        }
-        .search-box input:focus {
-            border-color: #00d2ff;
-            background: rgba(0,210,255,0.1);
-        }
-        .search-box input::placeholder { color: #666; }
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2em;
-        }
-        .province-select {
-            padding: 15px 25px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 50px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 1em;
-            outline: none;
-            cursor: pointer;
-            min-width: 150px;
-        }
-        .province-select:focus {
-            border-color: #00d2ff;
-        }
-        .province-select option {
-            background: #1a1a2e;
-            color: #fff;
-        }
-        
-        /* 统计信息 */
-        .stats {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0,210,255,0.1);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-        .stats span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #result-count {
-            color: #00d2ff;
-            font-weight: bold;
-        }
-        
-        /* 电台列表 */
-        .stations {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 15px;
-        }
-        .station {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-        }
-        .station:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .station.hidden { display: none; }
-        .station img {
-            width: 55px;
-            height: 55px;
-            border-radius: 10px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-        .station-info { 
-            flex: 1; 
-            min-width: 0;
-        }
-        .station-name { 
-            font-weight: bold; 
-            font-size: 1.05em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .station-province { 
-            color: #00d2ff; 
-            font-size: 0.85em;
-            margin-top: 2px;
-        }
-        .station-url {
-            font-family: monospace;
-            font-size: 0.7em;
-            color: #666;
-            word-break: break-all;
-            margin-top: 5px;
-        }
-        .station-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        .btn {
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.2s;
-        }
-        .btn-copy {
-            background: #3a7bd5;
-            color: white;
-        }
-        .btn-copy:hover { background: #2d6bc4; }
-        .btn-play {
-            background: #28a745;
-            color: white;
-        }
-        .btn-play:hover { background: #218838; }
-        .btn.copied {
-            background: #28a745 !important;
-        }
-        
-        /* 无结果提示 */
-        .no-results {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-            font-size: 1.2em;
-            display: none;
-        }
-        .no-results.show { display: block; }
-        
-        /* 快捷按钮 */
-        .quick-filters {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .quick-btn {
-            padding: 8px 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            background: transparent;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9em;
-        }
-        .quick-btn:hover, .quick-btn.active {
-            background: #3a7bd5;
-            border-color: #3a7bd5;
-        }
-
-        /* 播放器 */
-        .player {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
-            padding: 15px 20px;
-            display: none;
-            align-items: center;
-            gap: 15px;
-            backdrop-filter: blur(10px);
-        }
-        .player.show { display: flex; }
-        .player-info { flex: 1; }
-        .player-name { font-weight: bold; }
-        .player-province { color: #888; font-size: 0.9em; }
-        .player audio { width: 300px; }
-        .player-close {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚛 欧卡2中国电台</h1>
-        <p class="subtitle">本地流媒体转发服务器 - 将云听电台m3u8流转换为欧卡2可用格式</p>
-        
-        <div class="search-area">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索电台名称..." autocomplete="off">
-            </div>
-            <select class="province-select" id="provinceSelect">
-                <option value="">全部地区 (${stations.length})</option>
-                ${provinces.map(p => `<option value="${p}">${p} (${stations.filter(s => (s.province || '其他') === p).length})</option>`).join('')}
-            </select>
-        </div>
-        
-        <div class="quick-filters">
-            <button class="quick-btn" data-filter="新闻">📰 新闻</button>
-            <button class="quick-btn" data-filter="音乐">🎵 音乐</button>
-            <button class="quick-btn" data-filter="交通">🚗 交通</button>
-            <button class="quick-btn" data-filter="经济">💰 经济</button>
-            <button class="quick-btn" data-filter="文艺">🎭 文艺</button>
-            <button class="quick-btn" data-filter="生活">🏠 生活</button>
-        </div>
-        
-        <div class="stats">
-            <span>📻 总电台: <strong>${stations.length}</strong> 个</span>
-            <span>🔍 显示: <strong id="result-count">${stations.length}</strong> 个</span>
-            <span>🌐 服务器: <strong>http://127.0.0.1:${PORT}</strong></span>
-        </div>
-        
-        <div class="stations" id="stationList">
-            ${stationsData.map(s => `
+/**
+ * 生成电台HTML列表
+ */
+function generateStationListHtml(stationsData) {
+    return stationsData.map(s => {
+        const escapedName = s.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return `
             <div class="station" data-name="${s.name}" data-province="${s.province}" data-url="${s.url}">
                 <img src="${s.image || 'https://via.placeholder.com/55/1a1a2e/666?text=📻'}" alt="${s.name}" onerror="this.src='https://via.placeholder.com/55/1a1a2e/666?text=📻'">
                 <div class="station-info">
@@ -439,135 +156,64 @@ app.get('/', (req, res) => {
                     <div class="station-url">${s.url}</div>
                 </div>
                 <div class="station-actions">
-                    <button class="btn btn-play" onclick="playStation('${s.url}', '${s.name.replace(/'/g, "\\'")}', '${s.province}')">▶</button>
+                    <button class="btn btn-play" onclick="playStation('${s.url}', '${escapedName}', '${s.province}')">▶</button>
                     <button class="btn btn-copy" onclick="copyUrl(this, '${s.url}')">复制</button>
                 </div>
-            </div>
-            `).join('')}
-        </div>
-        
-        <div class="no-results" id="noResults">
-            😕 没有找到匹配的电台，试试其他关键词？
-        </div>
-    </div>
-    
-    <div class="player" id="player">
-        <div class="player-info">
-            <div class="player-name" id="playerName">-</div>
-            <div class="player-province" id="playerProvince">-</div>
-        </div>
-        <audio id="audioPlayer" controls></audio>
-        <button class="player-close" onclick="closePlayer()">✕ 关闭</button>
-    </div>
-
-<script>
-const searchInput = document.getElementById('searchInput');
-const provinceSelect = document.getElementById('provinceSelect');
-const stationList = document.getElementById('stationList');
-const stations = stationList.querySelectorAll('.station');
-const resultCount = document.getElementById('result-count');
-const noResults = document.getElementById('noResults');
-const quickBtns = document.querySelectorAll('.quick-btn');
-
-let activeQuickFilter = '';
-
-// 搜索过滤
-function filterStations() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const selectedProvince = provinceSelect.value;
-    let visibleCount = 0;
-    
-    stations.forEach(station => {
-        const name = station.dataset.name.toLowerCase();
-        const province = station.dataset.province;
-        
-        const matchSearch = !searchTerm || name.includes(searchTerm);
-        const matchProvince = !selectedProvince || province === selectedProvince;
-        const matchQuick = !activeQuickFilter || name.includes(activeQuickFilter.toLowerCase());
-        
-        if (matchSearch && matchProvince && matchQuick) {
-            station.classList.remove('hidden');
-            visibleCount++;
-        } else {
-            station.classList.add('hidden');
-        }
-    });
-    
-    resultCount.textContent = visibleCount;
-    noResults.classList.toggle('show', visibleCount === 0);
+            </div>`;
+    }).join('');
 }
 
-// 事件监听
-searchInput.addEventListener('input', filterStations);
-provinceSelect.addEventListener('change', filterStations);
-
-// 快捷过滤按钮
-quickBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const filter = btn.dataset.filter;
-        if (activeQuickFilter === filter) {
-            activeQuickFilter = '';
-            btn.classList.remove('active');
-        } else {
-            quickBtns.forEach(b => b.classList.remove('active'));
-            activeQuickFilter = filter;
-            btn.classList.add('active');
-        }
-        filterStations();
-    });
-});
-
-// 复制URL
-function copyUrl(btn, url) {
-    navigator.clipboard.writeText(url).then(() => {
-        const originalText = btn.textContent;
-        btn.textContent = '已复制!';
-        btn.classList.add('copied');
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.classList.remove('copied');
-        }, 1500);
-    });
+/**
+ * 生成省份选项HTML
+ */
+function generateProvinceOptions(provinces, stationsList) {
+    return provinces.map(p => {
+        const count = stationsList.filter(s => (s.province || '其他') === p).length;
+        return `<option value="${p}">${p} (${count})</option>`;
+    }).join('');
 }
 
-// 播放电台
-function playStation(url, name, province) {
-    const player = document.getElementById('player');
-    const audio = document.getElementById('audioPlayer');
-    const playerName = document.getElementById('playerName');
-    const playerProvince = document.getElementById('playerProvince');
-    
-    playerName.textContent = name;
-    playerProvince.textContent = province;
-    audio.src = url;
-    audio.play();
-    player.classList.add('show');
-}
+// 静态文件服务
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// 关闭播放器
-function closePlayer() {
-    const player = document.getElementById('player');
-    const audio = document.getElementById('audioPlayer');
-    audio.pause();
-    audio.src = '';
-    player.classList.remove('show');
-}
+/**
+ * 首页 - 显示所有可用电台
+ */
+app.get('/', (req, res) => {
+    // 读取模板文件
+    const templatePath = path.join(__dirname, 'views', 'index.html');
 
-// 键盘快捷键
-document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement !== searchInput) {
-        e.preventDefault();
-        searchInput.focus();
+    if (!fs.existsSync(templatePath)) {
+        return res.status(500).send('模板文件不存在');
     }
-    if (e.key === 'Escape') {
-        searchInput.blur();
-        searchInput.value = '';
-        filterStations();
-    }
-});
-</script>
-</body>
-</html>`;
+
+    const template = fs.readFileSync(templatePath, 'utf-8');
+
+    // 获取所有省份列表
+    const provinces = [...new Set(stations.map(s => s.province || '其他'))].sort((a, b) => {
+        if (a === '央广') return -1;
+        if (b === '央广') return 1;
+        return a.localeCompare(b, 'zh-CN');
+    });
+
+    // 生成电台数据
+    const stationsData = stations.map(s => ({
+        id: s.id,
+        name: s.name,
+        province: s.province || '其他',
+        image: s.image || '',
+        url: `http://127.0.0.1:${PORT}/stream/${s.id}`
+    }));
+
+    // 渲染模板
+    const html = renderTemplate(template, {
+        TOTAL_STATIONS: stations.length.toString(),
+        PORT: PORT.toString(),
+        PROVINCE_OPTIONS: generateProvinceOptions(provinces, stations),
+        STATION_LIST: generateStationListHtml(stationsData)
+    });
 
     res.send(html);
 });

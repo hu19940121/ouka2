@@ -1,0 +1,341 @@
+/* 欧卡2中国电台 - 样式表 */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+h1 { 
+    text-align: center; 
+    margin-bottom: 10px;
+    font-size: 2em;
+    background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    text-align: center;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.container { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+}
+
+/* 搜索和筛选区域 */
+.search-area {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 15px 20px 15px 50px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 1em;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.search-box input:focus {
+    border-color: #00d2ff;
+    background: rgba(0,210,255,0.1);
+}
+
+.search-box input::placeholder { 
+    color: #666; 
+}
+
+.search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+}
+
+.province-select {
+    padding: 15px 25px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 1em;
+    outline: none;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.province-select:focus {
+    border-color: #00d2ff;
+}
+
+.province-select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+/* 统计信息 */
+.stats {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0,210,255,0.1);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stats span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#result-count {
+    color: #00d2ff;
+    font-weight: bold;
+}
+
+/* 电台列表 */
+.stations {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 15px;
+}
+
+.station {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+}
+
+.station:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.station.hidden { 
+    display: none; 
+}
+
+.station img {
+    width: 55px;
+    height: 55px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.station-info { 
+    flex: 1; 
+    min-width: 0;
+}
+
+.station-name { 
+    font-weight: bold; 
+    font-size: 1.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.station-province { 
+    color: #00d2ff; 
+    font-size: 0.85em;
+    margin-top: 2px;
+}
+
+.station-url {
+    font-family: monospace;
+    font-size: 0.7em;
+    color: #666;
+    word-break: break-all;
+    margin-top: 5px;
+}
+
+.station-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s;
+}
+
+.btn-copy {
+    background: #3a7bd5;
+    color: white;
+}
+
+.btn-copy:hover { 
+    background: #2d6bc4; 
+}
+
+.btn-play {
+    background: #28a745;
+    color: white;
+}
+
+.btn-play:hover { 
+    background: #218838; 
+}
+
+.btn.copied {
+    background: #28a745 !important;
+}
+
+/* 无结果提示 */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 1.2em;
+    display: none;
+}
+
+.no-results.show { 
+    display: block; 
+}
+
+/* 快捷按钮 */
+.quick-filters {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.quick-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9em;
+}
+
+.quick-btn:hover, .quick-btn.active {
+    background: #3a7bd5;
+    border-color: #3a7bd5;
+}
+
+/* 播放器 */
+.player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+    padding: 15px 20px;
+    display: none;
+    align-items: center;
+    gap: 15px;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+.player.show { 
+    display: flex; 
+}
+
+.player-info { 
+    flex: 1; 
+}
+
+.player-name { 
+    font-weight: bold; 
+}
+
+.player-province { 
+    color: #888; 
+    font-size: 0.9em; 
+}
+
+.player audio { 
+    width: 300px; 
+}
+
+.player-close {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.player-close:hover {
+    background: #c82333;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .search-area {
+        flex-direction: column;
+    }
+    
+    .search-box {
+        max-width: 100%;
+    }
+    
+    .province-select {
+        width: 100%;
+    }
+    
+    .stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .player {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .player audio {
+        width: 100%;
+    }
+}

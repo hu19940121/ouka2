@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>欧卡2中国电台 - 本地转发服务器</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚛 欧卡2中国电台</h1>
+        <p class="subtitle">本地流媒体转发服务器 - 将云听电台m3u8流转换为欧卡2可用格式</p>
+        
+        <div class="search-area">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索电台名称..." autocomplete="off">
+            </div>
+            <select class="province-select" id="provinceSelect">
+                <option value="">全部地区 ({{TOTAL_STATIONS}})</option>
+                {{PROVINCE_OPTIONS}}
+            </select>
+        </div>
+        
+        <div class="quick-filters">
+            <button class="quick-btn" data-filter="新闻">📰 新闻</button>
+            <button class="quick-btn" data-filter="音乐">🎵 音乐</button>
+            <button class="quick-btn" data-filter="交通">🚗 交通</button>
+            <button class="quick-btn" data-filter="经济">💰 经济</button>
+            <button class="quick-btn" data-filter="文艺">🎭 文艺</button>
+            <button class="quick-btn" data-filter="生活">🏠 生活</button>
+        </div>
+        
+        <div class="stats">
+            <span>📻 总电台: <strong>{{TOTAL_STATIONS}}</strong> 个</span>
+            <span>🔍 显示: <strong id="result-count">{{TOTAL_STATIONS}}</strong> 个</span>
+            <span>🌐 服务器: <strong>http://127.0.0.1:{{PORT}}</strong></span>
+        </div>
+        
+        <div class="stations" id="stationList">
+            {{STATION_LIST}}
+        </div>
+        
+        <div class="no-results" id="noResults">
+            😕 没有找到匹配的电台，试试其他关键词？
+        </div>
+    </div>
+    
+    <div class="player" id="player">
+        <div class="player-info">
+            <div class="player-name" id="playerName">-</div>
+            <div class="player-province" id="playerProvince">-</div>
+        </div>
+        <audio id="audioPlayer" controls></audio>
+        <button class="player-close" onclick="closePlayer()">✕ 关闭</button>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
