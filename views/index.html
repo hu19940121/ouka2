@@ -1,57 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>欧卡2中国电台 - 本地转发服务器</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+    <div class="bg" aria-hidden="true"></div>
+
     <div class="container">
-        <h1>🚛 欧卡2中国电台</h1>
-        <p class="subtitle">本地流媒体转发服务器 - 将云听电台m3u8流转换为欧卡2可用格式</p>
-        
-        <div class="search-area">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索电台名称..." autocomplete="off">
+        <header class="hero">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">ETS2</div>
+                <div class="brand-text">
+                    <h1>欧卡2中国电台</h1>
+                    <p class="subtitle">本地流媒体转发服务器 - 将云听电台 m3u8 流转换为欧卡2可用格式</p>
+                </div>
             </div>
-            <select class="province-select" id="provinceSelect">
-                <option value="">全部地区 ({{TOTAL_STATIONS}})</option>
-                {{PROVINCE_OPTIONS}}
-            </select>
-        </div>
-        
-        <div class="quick-filters">
-            <button class="quick-btn" data-filter="新闻">📰 新闻</button>
-            <button class="quick-btn" data-filter="音乐">🎵 音乐</button>
-            <button class="quick-btn" data-filter="交通">🚗 交通</button>
-            <button class="quick-btn" data-filter="经济">💰 经济</button>
-            <button class="quick-btn" data-filter="文艺">🎭 文艺</button>
-            <button class="quick-btn" data-filter="生活">🏠 生活</button>
-        </div>
-        
-        <div class="stats">
-            <span>📻 总电台: <strong>{{TOTAL_STATIONS}}</strong> 个</span>
-            <span>🔍 显示: <strong id="result-count">{{TOTAL_STATIONS}}</strong> 个</span>
-            <span>🌐 服务器: <strong>http://127.0.0.1:{{PORT}}</strong></span>
-        </div>
-        
-        <div class="stations" id="stationList">
-            {{STATION_LIST}}
-        </div>
-        
-        <div class="no-results" id="noResults">
-            😕 没有找到匹配的电台，试试其他关键词？
-        </div>
+
+            <div class="panel" aria-label="搜索与筛选">
+                <div class="search-area">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索电台名称...（按 / 快速聚焦）" autocomplete="off">
+                    </div>
+                    <select class="province-select" id="provinceSelect">
+                        <option value="">全部地区 ({{TOTAL_STATIONS}})</option>
+                        {{PROVINCE_OPTIONS}}
+                    </select>
+                </div>
+
+                <div class="quick-filters" aria-label="快捷分类">
+                    <button class="quick-btn" type="button" data-filter="新闻">新闻</button>
+                    <button class="quick-btn" type="button" data-filter="音乐">音乐</button>
+                    <button class="quick-btn" type="button" data-filter="交通">交通</button>
+                    <button class="quick-btn" type="button" data-filter="经济">经济</button>
+                    <button class="quick-btn" type="button" data-filter="文艺">文艺</button>
+                    <button class="quick-btn" type="button" data-filter="生活">生活</button>
+                </div>
+
+                <div class="stats" aria-label="统计信息">
+                    <span>总电台: <strong>{{TOTAL_STATIONS}}</strong></span>
+                    <span>显示: <strong id="result-count">{{TOTAL_STATIONS}}</strong></span>
+                    <span>服务器: <strong>http://127.0.0.1:{{PORT}}</strong></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="stations" id="stationList">
+                {{STATION_LIST}}
+            </div>
+
+            <div class="no-results" id="noResults">
+                没有找到匹配的电台，试试其他关键词？
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="hints" aria-label="快捷键提示">
+                <span><kbd>/</kbd> 聚焦搜索</span>
+                <span><kbd>Esc</kbd> 清空筛选</span>
+                <span><kbd>Space</kbd> 播放/暂停</span>
+            </div>
+        </footer>
     </div>
-    
-    <div class="player" id="player">
+
+    <div class="player" id="player" aria-label="播放器">
         <div class="player-info">
             <div class="player-name" id="playerName">-</div>
             <div class="player-province" id="playerProvince">-</div>
         </div>
-        <audio id="audioPlayer" controls></audio>
-        <button class="player-close" onclick="closePlayer()">✕ 关闭</button>
+        <audio id="audioPlayer" controls preload="none"></audio>
+        <button class="player-close" type="button" onclick="closePlayer()">关闭</button>
     </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <script src="/js/app.js"></script>
 </body>
